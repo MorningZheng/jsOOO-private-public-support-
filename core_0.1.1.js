@@ -67,33 +67,38 @@
 
             return {
                 'object':{
+                    handler:function (structure,name,key,args) {
+                        var _scope=$scope;
+                        //所有的实例一定继承至某个父，有KEY_PROTO是属性，并且入口都在最上层
+                        if(this instanceof structure.factory && this.hasOwnProperty(KEY_PROTO)===false)$dock['$this']=$scope=this;
+
+                        var _super=$dock.$super;
+                        $dock.$super=$dock.$parent=structure.super;
+
+                        var _self=$dock.$self;
+                        $dock.$self=structure.factory;
+
+                        var _callee=$callee
+                        $callee=structure.chain[$index].descript[name][key];
+                        try{
+                            //切换作用域
+                            return $callee.apply($scope,$fix(args));
+                        }finally {
+                            $dock['$this']=$scope=_scope;
+                            $dock.$super=$dock.$parent=_super;
+                            $dock.$self=_self;
+                            $callee=_callee;
+                        };
+                    },
                     'public':function (structure,name,key) {
                         return structure.proxy[name][key]=function () {
-                            var _scope=$scope;
-
-                            //所有的实例一定继承至某个父，有KEY_PROTO是属性，并且入口都在最上层
-                            if(this instanceof structure.factory && this.hasOwnProperty(KEY_PROTO)===false)$dock['$this']=$scope=this;
-
                             var _index=$index;
                             $index=structure.chainIndex;
 
-                            var _super=$dock.$super;
-                            $dock.$super=$dock.$parent=structure.super;
-
-                            var _self=$dock.$self;
-                            $dock.$self=structure.factory;
-
-                            var _callee=$callee
-                            $callee=structure.chain[$index].descript[name][key];
                             try{
-                                //切换作用域
-                                return $callee.apply($scope,$fix(arguments));
+                                return $proxy.object.handler.call(this,structure,name,key,arguments);
                             }finally {
-                                $dock['$this']=$scope=_scope;
                                 $index=_index;
-                                $dock.$super=$dock.$parent=_super;
-                                $dock.$self=_self;
-                                $callee=_callee;
                             };
                         };
                     },
@@ -101,25 +106,20 @@
                         return structure.proxy[name][key]=function () {
                             if($index===-1)throw new Error('从在外部访问了一个私有的方法：'+structure.package+'.'+name+'。');
                             if(!structure.chain[$index] || !structure.chain[$index].descript[name])throw new Error('访问了一个不在本类上的私有方法：'+structure.package+'.'+name+'。');
-                            var _scope=$scope;
-                            if(this instanceof structure.factory && this.hasOwnProperty(KEY_PROTO)===false)$dock['$this']=$scope=this;
 
-                            var _super=$dock.$super;
-                            $dock.$super=$dock.$parent=structure.super;
+                            return $proxy.object.handler.call(this,structure,name,key,arguments);
+                        };
+                    },
+                    'protected':function (structure,name,key) {
+                        return structure.proxy[name][key]=function () {
+                            if($index===-1)throw new Error('从在外部访问了一个受保护的方法：'+structure.package+'.'+name+'。');
+                            var _index=$index;
+                            $index=structure.chainIndex;
 
-                            var _self=$dock.$self;
-                            $dock.$self=structure.factory;
-
-                            var _callee=$callee
-                            $callee=structure.chain[$index].descript[name][key];
-                            try {
-                                //切换作用域
-                                return $callee.apply($scope,$fix(arguments));
+                            try{
+                                return $proxy.object.handler.call(this,structure,name,key,arguments);
                             }finally {
-                                $dock['$this']=$scope=_scope;
-                                $dock.$super=$dock.$parent=_super;
-                                $dock.$self=_self;
-                                $callee=_callee;
+                                $index=_index;
                             };
                         };
                     },
@@ -130,9 +130,6 @@
                         delete structure.descript[name].writable;
 
                         if(value instanceof Function){
-                            // structure.descript[name].length=value.length;
-                            // structure.descript[name].args=[];
-                            // structure.descript[name].args.length=value.length;
                             value=$proxy.object[type](structure,name,'val');
                             value.toString=function () {
                                 return structure.descript[name].val.toString();
@@ -162,43 +159,47 @@
                     },
                 },
                 'static':{
+                    handler:function (structure,name,key,args) {
+                        var _self=$dock.$self;
+                        $dock.$self=structure.factory;
+
+                        var _callee=$callee
+                        $callee=structure.static[name][key];
+
+                        try{
+                            //切换作用域
+                            return $callee.apply($scope,$fix(args));
+                        }finally {
+                            $dock.$self=_self;
+                            $callee=_callee;
+                        };
+                    },
                     'public':function (structure,name,key) {
                         return function () {
                             var _index=$index;
                             $index=structure.chainIndex;
-
-                            var _self=$dock.$self;
-                            $dock.$self=structure.factory;
-
-                            var _callee=$callee
-                            $callee=structure.static[name][key];
-
                             try{
-                                //切换作用域
-                                return $callee.apply($scope,$fix(arguments));
+                                return $proxy.static.handler.call(this,structure,name,key,arguments);
                             }finally {
                                 $index=_index;
-                                $dock.$self=_self;
-                                $callee=_callee;
                             };
                         };
                     },
                     'private':function (structure,name,key) {
                         return function () {
                             if($index===-1)throw new Error('从在外部访问了一个私有的方法：'+structure.package+'.'+name+'。');
-
-                            var _self=$dock.$self;
-                            $dock.$self=structure.factory;
-
-                            var _callee=$callee
-                            $callee=structure.static[name][key];
-
+                            return $proxy.static.handler.call(this,structure,name,key,arguments);
+                        };
+                    },
+                    'protected':function (structure,name,key) {
+                        return structure.proxy[name][key]=function () {
+                            if($index===-1)throw new Error('从在外部访问了一个受保护的方法：'+structure.package+'.'+name+'。');
+                            var _index=$index;
+                            $index=structure.chainIndex;
                             try{
-                                //切换作用域
-                                return $callee.apply($scope,$fix(arguments));
+                                return $proxy.static.handler.call(this,structure,name,key,arguments);
                             }finally {
-                                $dock.$self=_self;
-                                $callee=_callee;
+                                $index=_index;
                             };
                         };
                     },
@@ -241,7 +242,6 @@
         })();
 
         var $factory=(function () {
-
             var $initializing=false;
             $dock['$this']=$dock['$super']=$dock['$parent']=$dock['$self']=undefined;
 
@@ -305,14 +305,12 @@
                     return structure.factory;
                 };
             };
-
             var $empty={
                 property:{},
                 construct:function () {
                     return this;
                 },
             };
-
             return function ($path,$name,$property,$parent) {
                 var $={
                     initialized:false,
@@ -328,11 +326,10 @@
                     property:$property||$empty.property,
                     construct:$empty.construct,
                 };
+                $.toStringData='[class '+$.package+']';
 
                 $.factory=(new Function('a','b','c',"return {'"+$.package+"':function () {return a(this===c?undefined:this,b,arguments);}}['"+$.package+"'];"))($config,$,$dock);
-                $.factory.toString=function () {
-                    return $.construct.toString();
-                };
+                $.factory.toString=function () {return $.toStringData;};
                 $.factory.__GLOBAL__=$;
 
                 return $;
@@ -348,7 +345,6 @@
                 };
             });
         };
-
         $dock['$bind']=function (methods) {
             if($scope){
                 Array.prototype.forEach.call(arguments,function (m) {
