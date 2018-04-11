@@ -34,11 +34,6 @@
     })();
 
     if($dock.$package instanceof Function)return true;
-    Number.MAX_VALUE=1.79769313486231e+308;
-    Number.MIN_VALUE=4.9406564584124654e-324;
-    Number.NaN=NaN;
-    Number.NEGATIVE_INFINITY=-Infinity;
-    Number.POSITIVE_INFINITY=Infinity;
 
     (function () {
         'use strict';
@@ -79,7 +74,7 @@
                         $dock.$self=structure.factory;
 
                         var _callee=$callee
-                        $callee=structure.chain[$index].descript[name][key];
+                        $callee=structure.chain[$index].property1[name][key];
                         try{
                             //切换作用域
                             return $callee.apply($scope,$fix(args));
@@ -91,7 +86,7 @@
                         };
                     },
                     'public':function (structure,name,key) {
-                        return structure.proxy[name][key]=function () {
+                        return structure.property2[name][key]=function () {
                             var _index=$index;
                             $index=structure.chainIndex;
 
@@ -103,15 +98,15 @@
                         };
                     },
                     'private':function (structure,name,key) {
-                        return structure.proxy[name][key]=function () {
+                        return structure.property2[name][key]=function () {
                             if($index===-1)throw new Error('从在外部访问了一个私有的方法：'+structure.package+'.'+name+'。');
-                            if(!structure.chain[$index] || !structure.chain[$index].descript[name])throw new Error('访问了一个不在本类上的私有方法：'+structure.package+'.'+name+'。');
+                            if(!structure.chain[$index] || !structure.chain[$index].property1[name])throw new Error('访问了一个不在本类上的私有方法：'+structure.package+'.'+name+'。');
 
                             return $proxy.object.handler.call(this,structure,name,key,arguments);
                         };
                     },
                     'protected':function (structure,name,key) {
-                        return structure.proxy[name][key]=function () {
+                        return structure.property2[name][key]=function () {
                             if($index===-1)throw new Error('从在外部访问了一个受保护的方法：'+structure.package+'.'+name+'。');
                             var _index=$index;
                             $index=structure.chainIndex;
@@ -125,37 +120,36 @@
                     },
                     value:function (structure,name,type) {
                         //这里只做转换，不涉及空间变化
-                        var value=structure.descript[name].val=structure.descript[name].data=structure.descript[name].value;
-                        delete structure.descript[name].value;
-                        delete structure.descript[name].writable;
+                        structure.property1[name].data=structure.property1[name].val=structure.property1[name].value;
+                        delete structure.property1[name].value;
+                        delete structure.property1[name].writable;
 
-                        if(value instanceof Function){
-                            value=$proxy.object[type](structure,name,'val');
-                            value.toString=function () {
-                                return structure.descript[name].val.toString();
+                        if(structure.property1[name].data instanceof Function){
+                            structure.property1[name].data=$proxy.object[type](structure,name,'val');
+                            structure.property1[name].data.toString=function () {
+                                return structure.property1[name].val.toString();
                             };
                         };
-                        structure.descript[name].get=function () {
-                            return $scope[KEY_SCOPE][$index].hasOwnProperty(name)?$scope[KEY_SCOPE][$index][name]:value;
+
+                        structure.property1[name].get=function () {
+                            return $scope[KEY_SCOPE][$index].hasOwnProperty(name)?$scope[KEY_SCOPE][$index][name]:structure.property1[name].data;
                         };
 
-                        structure.descript[name].set=function (newVal) {
+                        structure.property1[name].set=function (newVal) {
                             $scope[KEY_SCOPE][$index][name]=newVal;
                         };
                     },
                     get:function (structure,name,type) {
-                        if(structure.descript[name].set && !structure.descript[name].get)structure.descript[name].get=function () {
+                        if(structure.property1[name].set && !structure.property1[name].get)structure.property1[name].get=function () {
                             throw new Error('对只读属性：'+structure.package+'.'+name+' 取值失败。');
                         };
                         $proxy.object[type](structure,name,'get');
-                        if(structure.descript[name].length===undefined) structure.descript[name].length=0;
                     },
                     set:function (structure,name,type) {
-                        if(structure.descript[name].get && !structure.descript[name].set)structure.descript[name].set=function () {
+                        if(structure.property1[name].get && !structure.property1[name].set)structure.property1[name].set=function () {
                             throw new Error('对只读属性：'+structure.package+'.'+name+' 赋值失败。');
                         };
                         $proxy.object[type](structure,name,'set');
-                        if(structure.descript[name].length===undefined) structure.descript[name].length=0;
                     },
                 },
                 'static':{
@@ -164,7 +158,7 @@
                         $dock.$self=structure.factory;
 
                         var _callee=$callee
-                        $callee=structure.static[name][key];
+                        $callee=structure.method1[name][key];
 
                         try{
                             //切换作用域
@@ -175,7 +169,7 @@
                         };
                     },
                     'public':function (structure,name,key) {
-                        return function () {
+                        return structure.method2[name][key]=function () {
                             var _index=$index;
                             $index=structure.chainIndex;
                             try{
@@ -186,13 +180,13 @@
                         };
                     },
                     'private':function (structure,name,key) {
-                        return function () {
+                        return structure.method2[name][key]=function () {
                             if($index===-1)throw new Error('从在外部访问了一个私有的方法：'+structure.package+'.'+name+'。');
                             return $proxy.static.handler.call(this,structure,name,key,arguments);
                         };
                     },
                     'protected':function (structure,name,key) {
-                        return structure.proxy[name][key]=function () {
+                        return structure.method2[name][key]=function () {
                             if($index===-1)throw new Error('从在外部访问了一个受保护的方法：'+structure.package+'.'+name+'。');
                             var _index=$index;
                             $index=structure.chainIndex;
@@ -204,35 +198,35 @@
                         };
                     },
                     value:function (structure,name,type) {
-                        structure.static[name].data=structure.static[name].val=structure.static[name].value;
-                        delete structure.static[name].value;
-                        delete structure.static[name].writable;
+                        structure.method1[name].data=structure.method1[name].val=structure.method1[name].value;
+                        delete structure.method1[name].value;
+                        delete structure.method1[name].writable;
 
-                        if(structure.static[name].data instanceof Function){
-                            structure.static[name].data=$proxy.static[type](structure,name,'val');
-                            structure.static[name].data.toString=function () {
-                                return structure.static[name].val.toString();
+                        if(structure.method1[name].data instanceof Function){
+                            structure.method1[name].data=$proxy.static[type](structure,name,'val');
+                            structure.method1[name].data.toString=function () {
+                                return structure.method1[name].val.toString();
                             };
                         };
 
-                        structure.static[name].get=function () {
-                            return structure.static[name].data;
+                        structure.method1[name].get=function () {
+                            return structure.method1[name].data;
                         };
 
-                        structure.static[name].set=function (newVal) {
-                            structure.static[name].data=newVal;
+                        structure.method1[name].set=function (newVal) {
+                            structure.method1[name].data=newVal;
                         };
 
                         return structure;
                     },
                     get:function (structure,name,type) {
-                        if(structure.static[name].set && !structure.static[name].get)structure.static[name].get=function () {
+                        if(structure.method1[name].set && !structure.method1[name].get)structure.method1[name].get=function () {
                             throw new Error('对只读属性：'+structure.package+'.'+name+' 取值失败。');
                         };
                         $proxy.static[type](structure,name,'get');
                     },
                     set:function (structure,name,type) {
-                        if(structure.static[name].get && !structure.static[name].set)structure.static[name].set=function () {
+                        if(structure.method1[name].get && !structure.method1[name].set)structure.method1[name].set=function () {
                             throw new Error('对只读属性：'+structure.package+'.'+name+' 赋值失败。');
                         };
                         $proxy.static[type](structure,name,'set');
@@ -253,15 +247,15 @@
 
                         //初始化
                         structure.chain=[];
-                        structure.descript={};
-                        structure.proxy={};
+                        structure.property1={};
+                        structure.property2={};
 
                         //继承的实现
                         if(structure.parent){
-                            structure.factory.prototype=new structure.parent.factory();
+                            structure.factory.prototype=new structure.parent();
                             structure.factory.prototype.constructor=structure.factory;
-                            structure.super=structure.parent.factory.prototype;
-                            Array.prototype.push.apply(structure.chain,structure.parent.chain);
+                            structure.super=structure.parent.prototype;
+                            Array.prototype.push.apply(structure.chain,structure.parent.__GLOBAL__.chain);
                         }else structure.super={};
                         structure.factory.prototype[KEY_PROTO]=true;
 
@@ -272,18 +266,18 @@
                         //属性解包
                         structure.property['__construct']=structure.construct;
                         for(var p in structure.property){
-                            structure.proxy[p]={};
+                            structure.property2[p]={};
                             var t=$var(p);
-                            structure.descript[p]=Object.getOwnPropertyDescriptor(structure.property,p);
+                            structure.property1[p]=Object.getOwnPropertyDescriptor(structure.property,p);
 
                             //将value转换成getter/setter
-                            if(structure.descript[p].value)$proxy.object.value(structure,p,t);
+                            if(structure.property1[p].value)$proxy.object.value(structure,p,t);
 
                             $proxy.object.get(structure,p,t);
                             $proxy.object.set(structure,p,t);
                         };
                         //设置
-                        Object.defineProperties(structure.factory.prototype,structure.proxy);
+                        Object.defineProperties(structure.factory.prototype,structure.property2);
 
                         structure.initialized=true;
                         scope=new structure.factory();
@@ -383,22 +377,28 @@
             var staticHandler=function (method) {
                 var space=this instanceof Function?this.__GLOBAL__:this;
                 if(space.hasOwnProperty('static')===false){
-                    space.static={};
+                    space.method=method;
+                    space.method1={};
+                    space.method2={};
                     for(var m in method){
+                        space.method2[m]={};
                         var t=$var(m);
-                        space.static[m]=Object.getOwnPropertyDescriptor(method,m);
-                        if(space.static[m].value)$proxy.static.value(space,m,t);
+                        space.method1[m]=Object.getOwnPropertyDescriptor(method,m);
+                        if(space.method1[m].value)$proxy.static.value(space,m,t);
                         $proxy.static.get(space,m,t);
                         $proxy.static.set(space,m,t);
                     };
-                    Object.defineProperties(space.factory,space.static);
+                    Object.defineProperties(space.factory,space.method2);
                 };
                 return space.factory;
             };
 
             var extendsHandler=function (parent) {
                 var space=this instanceof Function?this.__GLOBAL__:this;
-                if(space.initialized===false) space.parent=parent.__GLOBAL__;
+                if(parent && space.initialized===false){
+                    if(parent instanceof Function) space.parent=parent;
+                    else if(parent.constructor===String)space.parent=$import(parent);
+                };
                 return space.factory;
             };
 
@@ -428,6 +428,171 @@
 
         var $class=$dock['$class']=function (name) {
             return $package(KEY_ANONYMOUS).class(name);
+        };
+
+        var $import=$dock['$import']=(function () {
+            var exist={};
+            var task=[];
+            var file=[];
+            var loading=false;
+
+            var requst,loader;
+            if($browser){
+                loader=new XMLHttpRequest();
+                loader.onerror=function () {
+                    load();
+                };
+                loader.onload=function () {
+                    if(f.useBuffer===true) sessionStorage.setItem('jib'+requst,loader.responseText);
+                    file.push(loader.responseText);
+                    load();
+                };
+                var load=function () {
+                    if(task.length){
+                        requst=f.router(task[0],'js');
+                        task.shift();
+
+                        if(exist.hasOwnProperty(requst)===false){
+                            if(f.useBuffer===true){
+                                var b=sessionStorage.getItem('jib'+requst);//jsFlex import buffer
+                                if(b){
+                                    file.push(b);
+                                    load();
+                                    return;
+                                };
+                            };
+
+                            exist[requst]=true;
+                            loader.open('GET',requst);
+                            loader.send();
+                        }else load();
+                    }else{
+                        loading=false;
+                        var js=file.concat();
+                        file.length=0;
+                        js.forEach(function (f) {
+                            try{
+                                (new Function(f))();
+                            }catch(_){
+                                console.log(f);
+                                throw _;
+                            };
+
+                        });
+                        file.length=0;
+
+                        if(loading===false)$main('start');
+                    };
+                };
+            }else{
+                var load=function () {
+                    if(task.length) {
+                        requst = f.router(task[0], 'js');
+                        require(requst);
+                        load();
+                    }else $main('start');
+                };
+            };
+
+            var f=function (c) {
+                c=c.split('.').reduce(function (a,v) {
+                    v=v.trim();
+                    if(v)a.push(v);
+                    return a;
+                },[]);
+                var n=c.slice(-1);
+                var p=c.slice(0,c.length-1);
+                var i=$space(p,Singleton,false);
+                var o=n==='*'?n:i?$space(n,i,false):i;
+
+                try{
+                    if(!o){
+                        task.push(c);
+                        if(loading===false){
+                            loading=true;
+                            setTimeout(load,0);
+                        };
+                        return $space(p,Singleton,true).class(n[0]);
+                    }else if(n!=='*') return o.factory;
+                }finally {
+                    c=n=p=i=o=null;
+                };
+            };
+            f.router=function (path,extend) {
+                extend=extend||'js';
+                if(extend==='js') return './'+path.slice(0,path.length-1).join('.')+'.'+extend;
+                else if(extend==='css') return './'+path+'.'+extend;
+            };
+            f.useBuffer=false;
+            Object.defineProperty(f,'running',{get:function () {return loading;}});
+
+
+            return f;
+        })();
+
+        var $main=$dock['$main']=$dock['$ready']=(function () {
+            var task=[];
+            return function (f) {
+                if(f==='start'){
+                    task.forEach(function (t) {
+                        t();
+                    });
+                    task.length=0;
+                }else if(f instanceof Function){
+                    task.push(f);
+                };
+            };
+        })();
+
+        var $callLater=$dock['$callLater']=(function () {
+            var $worker=function () {
+                var _=$list.concat();
+                $list.length=0;
+                $running=false;
+                _.sort(function (a,b) {
+                    if(a.priority<b.priority)return -1;
+                    else if(a.priority>b.priority)return 1;
+                    return 0;
+                }).forEach(function ($) {
+                    $.method.apply($,$.param);
+                });
+                _.length=0;
+            };
+            var $list=[];
+            var $running=false;
+
+            return function () {
+                if(arguments.length===0)return;
+                if($running===false){
+                    $running=true;
+                    setTimeout($worker,0);
+                };
+
+                var _={priority:0,method:null,param:[]};
+                if(arguments[0].constructor===Number){
+                    _.priority=arguments[0];
+                };
+
+                if(arguments[0] instanceof Function){
+                    _.method=arguments[0];
+                    _.param=_.param.slice.call(arguments,1);
+                }else if(arguments[1] instanceof Function){
+                    _.method=arguments[1];
+                    _.param=_.param.slice.call(arguments,2);
+                };
+
+                if(_.method instanceof Function)$list.push(_);
+            };
+        })();
+
+        var $css=$dock['$css']=function () {
+            Array.prototype.forEach.call(arguments,function (f) {
+                var $=document.createElement('link');
+                $.setAttribute('href',$import.router(f,'css'));
+                $.setAttribute('rel','stylesheet');
+                $.setAttribute('type','text/css');
+                document.head.appendChild($);
+            });
         };
     })();
 })(this);
