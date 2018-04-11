@@ -75,7 +75,7 @@ $ready(function () {
 
 
 ##### API
-###### 1. $package
+##### 1. $package
  1.1 class
  
  1.2 extends
@@ -85,19 +85,19 @@ $ready(function () {
  1.4 contrcut
  
  1.5 property
-###### 2. $class
-###### 3. private/public/protected
-###### 4. $parameter
-###### 5. $bind
-###### 6. $Singleton
+##### 2. $class
+##### 3. private/public/protected
+##### 4. $parameter
+##### 5. $bind
+##### 6. $Singleton
 6.1 replace 
-###### 7. $import
+##### 7. $import
 7.1 router
 
 7.2 useBuffer<default:false>
-###### 8. $ready
-###### 9. $callLater
-###### 10. $css
+##### 8. $ready
+##### 9. $callLater
+##### 10. $css
 
 ### 2018-05-01后更新API文档
 ### API document will update at 2018-05-01
