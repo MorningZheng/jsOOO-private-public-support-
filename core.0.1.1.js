@@ -48,8 +48,8 @@
         var $var=(function () {
             var $={'_':'private','$':'protected','#':'static'};
             return function (name) {
-                if(name==='__construct')return 'public';
-                name=name.substr(0,1);
+                if(name.substr(0,2)==='__')return 'public';
+                name=name.substr(0,1);//比如__是要弄出来的
                 return $.hasOwnProperty(name)?$[name]:'public';
             }
         })();
@@ -73,8 +73,9 @@
                         var _self=$dock.$self;
                         $dock.$self=structure.factory;
 
-                        var _callee=$callee
+                        var _callee=$callee;
                         $callee=structure.chain[$index].property1[name][key];
+
                         try{
                             //切换作用域
                             return $callee.apply($scope,$fix(args));
@@ -264,14 +265,14 @@
                         structure.chain.push(structure);
 
                         //属性解包
-                        structure.property['__construct']=structure.construct;
+                        structure.property.construct=structure.construct;
                         for(var p in structure.property){
                             structure.property2[p]={};
                             var t=$var(p);
                             structure.property1[p]=Object.getOwnPropertyDescriptor(structure.property,p);
 
                             //将value转换成getter/setter
-                            if(structure.property1[p].value)$proxy.object.value(structure,p,t);
+                            if(structure.property1[p].hasOwnProperty('value'))$proxy.object.value(structure,p,t);
 
                             $proxy.object.get(structure,p,t);
                             $proxy.object.set(structure,p,t);
@@ -288,7 +289,7 @@
                     if($initializing===false){
                         scope[KEY_SCOPE]=[];
                         while (scope[KEY_SCOPE].length<structure.chain.length)scope[KEY_SCOPE].push({});
-                        return scope['__construct'].apply(scope,args)||scope;
+                        return scope.construct.apply(scope,args)||scope;
                     }else return scope;
 
                 }else{
@@ -384,7 +385,7 @@
                         space.method2[m]={};
                         var t=$var(m);
                         space.method1[m]=Object.getOwnPropertyDescriptor(method,m);
-                        if(space.method1[m].value)$proxy.static.value(space,m,t);
+                        if(space.method1[m].hasOwnProperty('value'))$proxy.static.value(space,m,t);
                         $proxy.static.get(space,m,t);
                         $proxy.static.set(space,m,t);
                     };
